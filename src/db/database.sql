@@ -1,0 +1,31 @@
+CREATE DATABASE mangadb;
+
+CREATE TABLE manga(
+  manga_id INTEGER PRIMARY KEY,
+  title TEXT,
+  altTitles TEXT [],
+  description TEXT,
+  artist TEXT[],
+  author TEXT[],
+  language VARCHAR(20),
+  status INTEGER,
+  demographic INTEGER,
+  tags INTEGER[],
+  lastChapter VARCHAR(20),
+  lastVolume VARCHAR(20),
+  isHentai BOOLEAN,
+  mal TEXT,
+  engtl TEXT,
+  relation_ids INTEGER[],
+  relation_titles TEXT[],
+  relation_types INTEGER[],
+  relation_isHentais BOOLEAN[],
+  rating_bayesian DECIMAL(3, 2),
+  rating_mean DECIMAL(3, 2),
+  rating_users INTEGER,
+  views INTEGER,
+  follows INTEGER,
+  comments INTEGER,
+  lastUploaded INTEGER,
+  mainCover TEXT
+);
