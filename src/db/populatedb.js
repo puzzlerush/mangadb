@@ -1,12 +1,15 @@
+const fs = require('fs')
 const axios = require('axios')
 const { query } = require('./index')
 
+const stream = fs.createWriteStream('failed.txt', { flags: 'a' })
+
 const fetchData = async () => {
-  for (let i = 1; i <= 10; i += 1) {
+  for (let i = 10001; i <= 20000; i += 1) {
     try {
       const response = await axios.get(`https://api.mangadex.org/v2/manga/${i}`)
       const insertStatement =
-          `INSERT INTO manga(`
+        `INSERT INTO manga(`
         + `manga_id, title, altTitles, description, artist, `
         + `author, language, status, demographic, tags, `
         + `lastChapter, lastVolume, isHentai, mal, engtl, `
@@ -18,20 +21,20 @@ const fetchData = async () => {
         + `$11, $12, $13, $14, $15, $16, $17, $18, $19, $20, `
         + `$21, $22, $23, $24, $25, $26, $27) `
         + `RETURNING *`
-      const { 
-        id, title, altTitles, description, artist, 
+      const {
+        id, title, altTitles, description, artist,
         author, publication, tags, lastChapter, lastVolume,
         isHentai, links, relations, rating, views,
-        follows, comments, lastUploaded, mainCover 
+        follows, comments, lastUploaded, mainCover
       } = response.data.data
 
-      const { language, status, demographic } = publication
-      const { mal, engtl } = links
-      const { 
-        bayesian: rating_bayesian, 
-        mean: rating_mean, 
-        users: rating_users 
-      } = rating
+      const { language, status, demographic } = publication || {}
+      const { mal, engtl } = links || {}
+      const {
+        bayesian: rating_bayesian,
+        mean: rating_mean,
+        users: rating_users
+      } = rating || {}
       const relation_ids = []
       const relation_titles = []
       const relation_types = []
@@ -53,7 +56,15 @@ const fetchData = async () => {
       ])
       console.log(`Successfully saved manga with id ${id}`)
     } catch (e) {
-      console.log(e.message)
+      console.log(`Error saving manga with id ${i}: `, e.message)
+      if (!(e.response && [404, 401, 403].includes(e.response.status))) {
+        stream.write(i + ',')
+      }
+      if (e.response && e.response.status === 429) {
+        console.log(`Reached API request limit at manga with id ${i}`)
+        fs.writeFileSync('limit.txt', `Reached API request limit at manga with id ${i}`)
+        return
+      }
     }
 
   }
