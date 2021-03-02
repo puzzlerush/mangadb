@@ -68,7 +68,7 @@ const fetchOne = async (i) => {
 };
 
 const fetchData = async () => {
-  for (let i = 20101; i <= 30000; i += 1) {
+  for (let i = 40001; i <= 50000; i += 1) {
     await fetchOne(i);
   }
 };
