@@ -1,6 +1,6 @@
 CREATE DATABASE mangadb;
 
-CREATE TABLE manga(
+CREATE TABLE manga (
   manga_id INTEGER PRIMARY KEY,
   title TEXT,
   altTitles TEXT [],

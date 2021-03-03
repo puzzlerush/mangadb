@@ -68,20 +68,18 @@ const fetchOne = async (i) => {
 };
 
 const fetchData = async () => {
-  for (let i = 40001; i <= 50000; i += 1) {
+  for (let i = 60001; i <= 62800; i += 1) {
     await fetchOne(i);
   }
 };
 
 const retryFailed = async () => {
-  const failedString = fs.readFileSync('failed_from_1_to_20000.txt', 'utf8')
+  const failedString = fs.readFileSync('failed_from_50001_to_60000.txt', 'utf8')
   const failedArray = failedString.split(',').map((failedID) => parseInt(failedID))
   for (const i of failedArray) {
-    if (i > 3333) {
-      await fetchOne(i)
-    }
+    await fetchOne(i)
   }
 }
 
-fetchData();
-// retryFailed();
+// fetchData();
+retryFailed();
