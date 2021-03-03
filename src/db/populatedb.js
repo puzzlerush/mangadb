@@ -74,7 +74,7 @@ const fetchData = async () => {
 };
 
 const retryFailed = async () => {
-  const failedString = fs.readFileSync('failed_from_50001_to_60000.txt', 'utf8')
+  const failedString = fs.readFileSync('retry_fails_all_failed_failed.txt', 'utf8')
   const failedArray = failedString.split(',').map((failedID) => parseInt(failedID))
   for (const i of failedArray) {
     await fetchOne(i)
