@@ -78,6 +78,9 @@ ALTER TABLE manga
       setweight(to_tsvector('english', coalesce(description, '')), 'C')
     ) STORED;
 
+/* Create GIN index to speed up search */
+CREATE INDEX textsearch_idx ON manga USING GIN (textsearchable_index_col);
+
 /* Insert new row to test the generated column */
 insert into manga (manga_id, title, alttitles, description, relation_titles)
 values (
