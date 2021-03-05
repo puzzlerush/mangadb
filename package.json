@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node ./src/server.js",
     "dev": "env-cmd --file ./config/dev.env nodemon ./src/server.js",
     "populate": "env-cmd --file ./config/dev.env node ./src/db/populatedb.js"
   },
@@ -18,5 +19,9 @@
   "devDependencies": {
     "env-cmd": "^10.1.0",
     "nodemon": "^2.0.7"
+  },
+  "engines": {
+    "node": "12.18.3",
+    "npm": "6.14.6"
   }
 }
