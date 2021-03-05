@@ -1,10 +1,7 @@
-const fs = require('fs')
 const axios = require('axios')
 const { query } = require('./index')
 
-const stream = fs.createWriteStream('failed.txt', { flags: 'a' })
-
-const fetchOne = async (i) => {
+const fetchOne = async (i, download_id) => {
   try {
     const response = await axios.get(`https://api.mangadex.org/v2/manga/${i}`)
     const insertStatement =
@@ -54,32 +51,62 @@ const fetchOne = async (i) => {
       lastUploaded, mainCover
     ])
     console.log(`Successfully saved manga with id ${id}`)
+    await query(
+      'UPDATE downloads SET success = success || $1 WHERE id = $2',
+      [[i], download_id]
+    )
   } catch (e) {
     console.log(`Error saving manga with id ${i}: `, e.message)
-    if (!(e.response && [404, 401, 403].includes(e.response.status))) {
-      stream.write(i + ',')
-    }
-    if (e.response && e.response.status === 429) {
-      console.log(`Reached API request limit at manga with id ${i}`)
-      fs.writeFileSync('limit.txt', `Reached API request limit at manga with id ${i}`)
-      return
+    if (e.response && [404, 401, 403].includes(e.response.status)) {
+      await query(
+        'UPDATE downloads SET unknown = unknown || $1 WHERE id = $2',
+        [[i], download_id]
+      )
+    } else {
+      await query(
+        'UPDATE downloads SET failed = failed || $1 WHERE id = $2',
+        [[i], download_id]
+      )
     }
   }
 };
 
-const fetchData = async () => {
-  for (let i = 60001; i <= 62800; i += 1) {
-    await fetchOne(i);
+const updateDatabase = async () => {
+  const select_last_download_id = await query('SELECT MAX(id) as max_id FROM downloads')
+  const last_download_id = select_last_download_id.rows[0].max_id
+
+  
+  let start;
+  let failed = [];
+  if (!last_download_id) {
+    const result = await query('SELECT MAX(manga_id) as max_id FROM manga')
+    start = result.rows[0].max_id + 1
+  } else {
+    const select_last_download = await query(
+      'SELECT * FROM downloads WHERE id = $1',
+      [last_download_id]
+    )
+    start = select_last_download.rows[0].end_id + 1
+    failed = select_last_download.rows[0].failed
   }
+  const interval = 10
+  const end = start + interval
+
+  const insert_new_download = await query(
+    'INSERT INTO downloads(start_id, end_id) VALUES ($1, $2) RETURNING id',
+    [start, end]
+  )
+
+  const current_download_id = insert_new_download.rows[0].id
+
+  for (const failed_id of failed) {
+    await fetchOne(failed_id, current_download_id)
+  }
+
+  for (let i = start; i <= end; i += 1) {
+    await fetchOne(i, current_download_id)
+  }
+
 };
 
-const retryFailed = async () => {
-  const failedString = fs.readFileSync('retry_fails_all_failed_failed.txt', 'utf8')
-  const failedArray = failedString.split(',').map((failedID) => parseInt(failedID))
-  for (const i of failedArray) {
-    await fetchOne(i)
-  }
-}
-
-// fetchData();
-retryFailed();
+updateDatabase();

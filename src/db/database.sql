@@ -29,3 +29,13 @@ CREATE TABLE manga (
   lastUploaded INTEGER,
   mainCover TEXT
 );
+
+CREATE TABLE downloads (
+  id SERIAL PRIMARY KEY,
+  start_id INTEGER,
+  end_id INTEGER,
+  success INTEGER[] DEFAULT '{}',
+  failed INTEGER[] DEFAULT '{}',
+  unknown INTEGER[] DEFAULT '{}',
+  time_created TIMESTAMPTZ DEFAULT NOW()
+);
