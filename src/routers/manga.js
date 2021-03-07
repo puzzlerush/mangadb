@@ -26,17 +26,20 @@ router.get('/', async (req, res) => {
 })
 
 router.get('/search', async (req, res) => {
-  const searchStatement =
-    `SELECT manga_id, title, artist, author, description, rating_bayesian, views, mainCover, COUNT(*) OVER() AS count `
-    + `FROM manga `
-    + `WHERE textsearchable_index_col @@ plainto_tsquery($1) `
-    + `ORDER BY ts_rank_cd(textsearchable_index_col, plainto_tsquery($1)) DESC `
-    + `LIMIT $2 OFFSET $3`
   try {
-    const { q: searchQuery, limit = 10, skip = 0 } = req.query
+    const { q: searchQuery, nsfw, limit = 10, skip = 0 } = req.query
+    const searchStatement =
+      `SELECT manga_id, title, artist, author, description, rating_bayesian, views, mainCover, COUNT(*) OVER() AS count `
+      + `FROM manga `
+      + `WHERE textsearchable_index_col @@ plainto_tsquery($1) `
+      + `${nsfw === 'true' ? '' : 'AND ishentai = false '}`
+      + `ORDER BY ts_rank_cd(textsearchable_index_col, plainto_tsquery($1)) DESC `
+      + `LIMIT $2 OFFSET $3`
+
     const searchResult = await query(searchStatement, [searchQuery, limit, skip])
     const formattedResults = searchResult.rows.map((row) => convertToMangaDexFormat(row))
-    res.send({ results: formattedResults, count: parseInt(formattedResults[0].count) })
+    const count = formattedResults.length > 0 ? parseInt(formattedResults[0].count) : 0
+    res.send({ results: formattedResults, count })
   } catch (e) {
     res.status(400).send(e)
   }
