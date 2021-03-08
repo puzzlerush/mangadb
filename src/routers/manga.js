@@ -4,22 +4,31 @@ const { convertToMangaDexFormat } = require('../utils')
 
 const router = express.Router()
 
+const selectFields = 'SELECT manga_id, title, artist, author, description, rating_bayesian, views, mainCover '
+
 router.get('/', async (req, res) => {
-  // try {
-  //   const { limit = 10, skip = 0 } = req.query
-  //   const result = await query(
-  //     'SELECT manga_id, title, artist, author, description, rating_bayesian, views, mainCover '
-  //   + 'FROM manga ORDER BY title LIMIT $1 OFFSET $2',
-  //     [limit, skip]
-  //   )
-  //   res.send(result.rows.map((row) => convertToMangaDexFormat(row)))
-  // } catch (e) {
-  //   res.status(400).send(e)
-  // }
-  const { limit = 10, skip = 0 } = req.query
+  const { sortby = 'title', ascending = 'true', limit = 10, skip = 0 } = req.query
+  
+  let orderByField;
+  switch (sortby.toLowerCase()) {
+    case 'views':
+      orderByField = 'views'
+      break;
+    default:
+      orderByField = 'title'
+      break;
+  }
+
+  let orderByDirection;
+  if (ascending === 'true') {
+    orderByDirection = 'ASC'
+  } else {
+    orderByDirection = 'DESC'
+  }
+
   const result = await query(
-    'SELECT manga_id, title, artist, author, description, rating_bayesian, views, mainCover '
-    + 'FROM manga ORDER BY title LIMIT $1 OFFSET $2',
+    selectFields
+    + `FROM manga ORDER BY ${orderByField} ${orderByDirection} LIMIT $1 OFFSET $2`,
     [limit, skip]
   )
   res.send(result.rows.map((row) => convertToMangaDexFormat(row)))
@@ -29,7 +38,7 @@ router.get('/search', async (req, res) => {
   try {
     const { q: searchQuery, nsfw, limit = 10, skip = 0 } = req.query
     const searchStatement =
-      `SELECT manga_id, title, artist, author, description, rating_bayesian, views, mainCover, COUNT(*) OVER() AS count `
+      `${selectFields}, COUNT(*) OVER() AS count `
       + `FROM manga `
       + `WHERE textsearchable_index_col @@ plainto_tsquery($1) `
       + `${nsfw === 'true' ? '' : 'AND ishentai = false '}`
