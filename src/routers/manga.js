@@ -7,12 +7,15 @@ const router = express.Router()
 const selectFields = 'SELECT manga_id, title, artist, author, description, rating_bayesian, views, mainCover '
 
 router.get('/', async (req, res) => {
-  const { sortby = 'title', ascending = 'true', limit = 10, skip = 0 } = req.query
+  const { sortby = 'title', ascending = 'true', nsfw, limit = 10, skip = 0 } = req.query
   
   let orderByField
   switch (sortby.toLowerCase()) {
     case 'views':
       orderByField = 'views'
+      break
+    case 'rating':
+      orderByField = 'rating_bayesian'
       break
     default:
       orderByField = 'title'
@@ -25,13 +28,18 @@ router.get('/', async (req, res) => {
   } else {
     orderByDirection = 'DESC'
   }
-
+  
+  const whereClause = `${nsfw === 'true' ? '' : 'WHERE ishentai = false '}`
   const result = await query(
     selectFields
-    + `FROM manga ORDER BY ${orderByField} ${orderByDirection} LIMIT $1 OFFSET $2`,
+    + `FROM manga `
+    + whereClause
+    + `ORDER BY ${orderByField} ${orderByDirection} LIMIT $1 OFFSET $2`,
     [limit, skip]
   )
-  res.send(result.rows.map((row) => convertToMangaDexFormat(row)))
+  const countResult = await query(`SELECT COUNT(*) FROM manga ${whereClause}`)
+  const formattedResults = result.rows.map((row) => convertToMangaDexFormat(row))
+  res.send({ results: formattedResults, count: parseInt(countResult.rows[0].count) })
 })
 
 router.get('/search', async (req, res) => {
