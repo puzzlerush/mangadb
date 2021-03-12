@@ -9,17 +9,17 @@ const selectFields = 'SELECT manga_id, title, artist, author, description, ratin
 router.get('/', async (req, res) => {
   const { sortby = 'title', ascending = 'true', limit = 10, skip = 0 } = req.query
   
-  let orderByField;
+  let orderByField
   switch (sortby.toLowerCase()) {
     case 'views':
       orderByField = 'views'
-      break;
+      break
     default:
       orderByField = 'title'
-      break;
+      break
   }
 
-  let orderByDirection;
+  let orderByDirection
   if (ascending === 'true') {
     orderByDirection = 'ASC'
   } else {
@@ -51,8 +51,8 @@ router.get('/search', async (req, res) => {
 
     const countStatement = `SELECT COUNT(*) FROM manga ${whereClause}`
 
-    const searchResult = await query(searchStatement, [searchQuery, limit, skip]);
-    const countResult = await query(countStatement, [searchQuery]);
+    const searchResult = await query(searchStatement, [searchQuery, limit, skip])
+    const countResult = await query(countStatement, [searchQuery])
     const formattedResults = searchResult.rows.map((row) => convertToMangaDexFormat(row))
     res.send({ results: formattedResults, count: parseInt(countResult.rows[0].count) })
   } catch (e) {

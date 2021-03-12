@@ -11,4 +11,4 @@ const convertToMangaDexFormat = (result) => {
 
 module.exports = {
   convertToMangaDexFormat
-};
+}

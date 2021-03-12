@@ -69,15 +69,15 @@ const fetchOne = async (i, download_id) => {
       )
     }
   }
-};
+}
 
 const updateDatabase = async () => {
   const select_last_download_id = await query('SELECT MAX(id) as max_id FROM downloads')
   const last_download_id = select_last_download_id.rows[0].max_id
 
   
-  let start;
-  let failed = [];
+  let start
+  let failed = []
   if (!last_download_id) {
     const result = await query('SELECT MAX(manga_id) as max_id FROM manga')
     start = result.rows[0].max_id + 1
@@ -107,6 +107,6 @@ const updateDatabase = async () => {
     await fetchOne(i, current_download_id)
   }
 
-};
+}
 
-updateDatabase();
+updateDatabase()
