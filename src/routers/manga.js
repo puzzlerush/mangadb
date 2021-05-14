@@ -4,7 +4,7 @@ const { convertToMangaDexFormat } = require('../utils')
 
 const router = express.Router()
 
-const selectFields = 'SELECT manga_id, title, artist, author, description, rating_bayesian, views, mainCover '
+const selectFields = 'SELECT mim.new_id manga_id, title, artist, author, description, rating_bayesian, views, mainCover '
 
 router.get('/', async (req, res) => {
   const { sortby = 'title', ascending = 'true', nsfw, limit = 10, skip = 0 } = req.query
@@ -33,6 +33,7 @@ router.get('/', async (req, res) => {
   const result = await query(
     selectFields
     + `FROM manga `
+    + `INNER JOIN manga_id_map mim ON manga.manga_id = mim.legacy_id `
     + whereClause
     + `ORDER BY ${orderByField} ${orderByDirection} LIMIT $1 OFFSET $2`,
     [limit, skip]
@@ -53,6 +54,7 @@ router.get('/search', async (req, res) => {
     const searchStatement =
       selectFields
       + `FROM manga `
+      + `INNER JOIN manga_id_map mim ON manga.manga_id = mim.legacy_id `
       + whereClause
       + `ORDER BY ts_rank_cd(textsearchable_index_col, plainto_tsquery($1)) DESC `
       + `LIMIT $2 OFFSET $3`

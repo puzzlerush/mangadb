@@ -39,3 +39,16 @@ CREATE TABLE downloads (
   unknown INTEGER[] DEFAULT '{}',
   time_created TIMESTAMPTZ DEFAULT NOW()
 );
+
+create table manga_id_map (
+  id SERIAL PRIMARY KEY,
+  legacy_id INTEGER,
+  new_id TEXT
+);
+
+copy manga_id_map (id, legacy_id, new_id)
+from 'manga_map.csv'
+delimiter ','
+csv header;
+
+\copy manga_id_map(id, legacy_id, new_id) from manga_map.csv csv header;
