@@ -4,7 +4,7 @@ const { convertToMangaDexFormat } = require('../utils')
 
 const router = express.Router()
 
-const selectFields = 'SELECT mim.new_id manga_id, title, artist, author, description, rating_bayesian, views, mainCover '
+const selectFields = 'SELECT mim.new_id manga_id, title, artist, author, description, rating_bayesian, views, mainCover, mal '
 
 router.get('/', async (req, res) => {
   const { sortby = 'title', ascending = 'true', nsfw, limit = 10, skip = 0 } = req.query
