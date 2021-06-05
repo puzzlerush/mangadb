@@ -3,6 +3,7 @@ const cors = require('cors')
 const { createProxyMiddleware } = require('http-proxy-middleware')
 const morgan = require('morgan')
 const mangaRouter = require('./routers/manga')
+const mdhRouter = require('./routers/mdh')
 
 const port = process.env.PORT
 
@@ -10,11 +11,14 @@ const app = express()
 
 app.use(cors())
 app.use(morgan('dev'))
+app.use(express.json())
 
 app.use('/mangadb', mangaRouter)
 
+app.use('/mdh', mdhRouter)
+
 app.use('/', createProxyMiddleware({
-  target: 'https://api.mangadex.org/v2',
+  target: 'https://api.mangadex.org/',
   changeOrigin: true,
   onProxyRes: (proxyRes, req, res) => {
     delete proxyRes.headers['Access-Control-Allow-Origin']
