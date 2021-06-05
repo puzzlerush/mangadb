@@ -5,10 +5,13 @@ const router = express.Router()
 router.get('/:chapterId', async (req, res) => {
   try {
     const { chapterId } = req.params
-    const response = await axios.get(`/at-home/server/${chapterId}`);
-    const { baseUrl } = response.data;
-    const { data: { data: { attributes: { hash, data, dataSaver: pages } } } } = await axios.get(`/chapter/${chapterId}`)
+    const mdhRequest = axios.get(`/at-home/server/${chapterId}`)
+    const chapterRequest = axios.get(`/chapter/${chapterId}`)
     
+    const [mdhResponse, chapterResponse] = await Promise.all([mdhRequest, chapterRequest])
+    const { baseUrl } = mdhResponse.data
+    const { data: { data: { attributes: { hash, data, dataSaver: pages } } } } = chapterResponse
+
     const pageURLs = pages.map(
       (page) => `${baseUrl}/data-saver/${hash}/${page}`
     );
