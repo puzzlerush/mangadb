@@ -5,15 +5,14 @@ const router = express.Router()
 router.get('/:chapterId', async (req, res) => {
   try {
     const { chapterId } = req.params
-    const mdhRequest = axios.get(`/at-home/server/${chapterId}`)
-    const chapterRequest = axios.get(`/chapter/${chapterId}`)
-    
-    const [mdhResponse, chapterResponse] = await Promise.all([mdhRequest, chapterRequest])
-    const { baseUrl } = mdhResponse.data
-    const { data: { data: { attributes: { hash, data, dataSaver: pages } } } } = chapterResponse
+    const lowRes = req.query.lowRes === 'true'
+
+    const mdhResponse = await axios.get(`/at-home/server/${chapterId}`)
+    const { baseUrl, chapter: { hash, data, dataSaver } } = mdhResponse.data
+    const pages = lowRes === true ? dataSaver : data
 
     const pageURLs = pages.map(
-      (page) => `${baseUrl}/data-saver/${hash}/${page}`
+      (page) => `${baseUrl}/${lowRes === true ? 'data-saver' : 'data'}/${hash}/${page}`
     );
 
     const imageBuffers = await Promise.all(
