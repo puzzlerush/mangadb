@@ -4,6 +4,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware')
 const morgan = require('morgan')
 const mangaRouter = require('./routers/manga')
 const mdhRouter = require('./routers/mdh')
+const imageRouter = require('./routers/image')
 
 const port = process.env.PORT
 
@@ -16,6 +17,8 @@ app.use(express.json())
 app.use('/mangadb', mangaRouter)
 
 app.use('/mdh', mdhRouter)
+
+app.use('/image', imageRouter)
 
 app.use('/', createProxyMiddleware({
   target: 'https://api.mangadex.org/',
